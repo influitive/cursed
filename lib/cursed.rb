@@ -1,6 +1,6 @@
 # frozen_string_literal: true
-require 'cursed/version'
 
-module Cursed
-  # Your code goes here...
-end
+require 'cursed/version'
+require 'cursed/cursor'
+require 'cursed/collection'
+require 'cursed/adapter'
