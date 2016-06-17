@@ -1,0 +1,11 @@
+machine:
+  environment:
+    DATABASE_URL: postgresql://ubuntu:@localhost/circle_ruby_test
+
+database:
+  override:
+    - createdb -O ubuntu circle_ruby_test
+
+test:
+  override:
+    - bundle exec rspec
