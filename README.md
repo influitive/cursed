@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/influitive/cursed.svg?style=svg)](https://circleci.com/gh/influitive/cursed)
+
 # Cursed
 
 Cursed is a gem that implements the cursoring pattern in Postgres with the
