@@ -7,8 +7,10 @@ require 'cursed/version'
 Gem::Specification.new do |spec|
   spec.name          = 'cursed'
   spec.version       = Cursed::VERSION
+  spec.licenses      = ['MIT']
   spec.authors       = ['Will Howard']
   spec.email         = ['will@influitive.com']
+  spec.homepage      = 'https://www.github.com/influitive/cursed'
 
   spec.summary       = 'PostgreSQL based cursoring in ActiveRecord and Sequel'
 
