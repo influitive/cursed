@@ -8,6 +8,9 @@ Style/Documentation:
 Style/ClassAndModuleChildren:
   Enabled: false
 
+Style/MethodName:
+  Enabled: false
+
 Metrics/LineLength:
   Max: 120
 

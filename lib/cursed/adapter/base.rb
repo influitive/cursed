@@ -28,4 +28,15 @@ module Cursed
       end
     end
   end
+
+  module_function
+
+  def Adapter(value)
+    case value
+    when -> (x) { x.is_a?(Class) && x.ancestors.include?(Adapter::Base) } then value
+    when Sequel::Dataset then Adapter::Sequel
+    when ActiveRecord::Base, ActiveRecord::Relation then Adapter::ActiveRecord
+    else raise ArgumentError, "unable to cast #{value.inspect} to Adapter"
+    end
+  end
 end

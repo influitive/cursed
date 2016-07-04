@@ -1,8 +1,13 @@
 # frozen_string_literal: true
 
+require 'forwardable'
+
 module Cursed
   class Collection
+    extend Forwardable
     include Enumerable
+
+    def_delegators :current_page, :each, :maximum_id, :minimum_id, :next_page_params, :prev_page_params
 
     attr_reader :relation, :cursor, :adapter
 
@@ -12,72 +17,46 @@ module Cursed
     def initialize(relation:, cursor:, adapter: nil)
       @relation = relation
       @cursor = cursor
-      @adapter = adapter || determine_adapter(relation)
+      @adapter = Cursed::Adapter(adapter || relation)
     end
 
-    # Iterates through each element in the current page
-    def each(*args, &block)
-      collection.each(*args, &block)
-    end
-
-    # Invalidates the local cache of the current page - the next call to {#each}
-    # (or any Enumerable method that calls it) will fetch a fresh page.
+    # invalidates the {#current_page}, {#next_page} and {#prev_page}
+    # @see Page#invalidate!
     def invalidate!
-      @collection = nil
+      [prev_page, next_page, current_page].each(&:invalidate!)
     end
 
-    # Returns the maximum cursor index in the current page
-    def maximum_id
-      collection.map(&cursor.attribute).max
+    # @return [Page] the current page
+    def current_page
+      @current_page ||= build_page(cursor)
     end
 
-    # Returns the minimum cursor index in the current page
-    def minimum_id
-      collection.map(&cursor.attribute).min
+    # @return [Page] the page following this one
+    def next_page
+      @next_page ||= build_page(current_page.next_page_cursor)
     end
 
-    # Returns a hash of parameters which should be used for generating a next
-    # page link.
-    # @return [Hash] a hash containing any combination of :before, :after, :limit
-    def next_page_params
-      if cursor.forward?
-        after_maximum_params
-      else
-        before_minimum_params
-      end
+    # @return [Page] the page previous to this one
+    def prev_page
+      @prev_page ||= build_page(current_page.prev_page_cursor)
     end
 
-    # Returns a hash of parameters which should be used for generating a previous
-    # page link.
-    # @return [Hash] a hash containing any combination of :before, :after, :limit
-    def prev_page_params
-      if cursor.forward?
-        before_minimum_params
-      else
-        after_maximum_params
-      end
+    # @return [Boolean] true if there are records that follow records in the current page
+    def next_page?
+      next_page.any?
+    end
+
+    # @return [Boolean] true if there are records that preceede records in the current page
+    def prev_page?
+      prev_page.any?
     end
 
     private
 
-    def collection
-      @collection ||= adapter.new(relation).apply_to(cursor).to_a
-    end
+    attr_reader :relation, :cursor, :adapter
 
-    def determine_adapter(relation)
-      case relation
-      when Sequel::Dataset then Adapter::Sequel
-      when ActiveRecord::Base, ActiveRecord::Relation then Adapter::ActiveRecord
-      else raise ArgumentError, "unable to determine adapter for #{relation.inspect}"
-      end
-    end
-
-    def after_maximum_params
-      { after: maximum_id, limit: cursor.clamped_limit }
-    end
-
-    def before_minimum_params
-      { before: minimum_id, limit: cursor.clamped_limit }
+    def build_page(cursor)
+      Page.new(relation: adapter.new(relation.dup).apply_to(cursor), cursor: cursor)
     end
   end
 end
