@@ -54,11 +54,16 @@ The `Collection` is enumerable so you can use it as you would us any array
 ```
 
 To generate your next link and previous link merge in the values of `#next_page_params`
-and `#prev_page_params` into your URL generator
+and `#prev_page_params` into your URL generator.  `#next_page?` and `#prev_page?` can
+be used to determine if there are next or previous pages of records currently.
 
 ```erb
-  <%= link_to 'Previous Page', widgets_path(collection.prev_page_params) %>
-  <%= link_to 'Next Page', widgets_path(collection.next_page_params) %>
+  <% if collection.prev_page? %>
+    <%= link_to 'Previous Page', widgets_path(collection.prev_page_params) %>
+  <% end %>
+  <% if collection.next_page? %>
+    <%= link_to 'Next Page', widgets_path(collection.next_page_params) %>
+  <% end %>
 ```
 
 ## Development
